@@ -14,6 +14,7 @@ import bs4
 import re
 import datetime
 import string
+import sys
 
 # 2. get the URL
 
@@ -59,7 +60,7 @@ d={} # create an empty dictionary
 for letter in string.ascii_lowercase: # string.ascii_lowercase gives you all lower case letters in the alphabet    
     d["artist_page_" + letter] = [] # You are creating a dictionary with key {artist_page_<laufvariable>: NULL}, e.g. artist_page_a, artist_page_b
     print("We are at letter:" + letter)
-    for page_count in range(1,300): # for every artist_page_<letter> you are opening up artist_page_<letter>_<page_number> and perform operations
+    for page_count in range(1,5): # for every artist_page_<letter> you are opening up artist_page_<letter>_<page_number> and perform operations
             
     
         # if urlopen("https://www.ultimate-guitar.com/bands/"+ str(letter) + str(page_count)+".htm")  --> How to include if statement to only execute this if it exists?
@@ -74,18 +75,54 @@ for letter in string.ascii_lowercase: # string.ascii_lowercase gives you all low
         from fnmatch import fnmatch, fnmatchcase
         artist_list_temp = [x for x in artist_list_raw_list if fnmatch(x, "href=*")]
         artist_list_temp_2 = [re.sub("href=\"", "", line) for line in artist_list_temp]
-        artist_list_temp_3 = [re.sub("\">A", "", line) for line in artist_list_temp_2]
+        artist_list_temp_3 = [re.split("\">", line)[0] for line in artist_list_temp_2] # delete the sub string that comes after the ">
         d["artist_page_" + letter].append(artist_list_temp_3)
         print(str(datetime.datetime.now()) + "Within letter " + letter + " this is page number: "+ str(page_count))
 
 
+ # 7. Get a list of all the songs and their URLS of an artists, where there are CHORDS available
+ 
+# Pseudocode: 
+# for every artists URL 
+    # open the webpage and retrieve all song links where there are chords available
+    
+# Try with one webpage first
+
+artist_songs_test = urlopen("https://www.ultimate-guitar.com/tabs/mac_demarco_tabs.htm")
+soup = bs4.BeautifulSoup(artist_songs_test)
+print(soup.prettify())
+song_list = soup.find_all("tr", {"class":"tr__lg"}) # distills the important stuff better
+song_list_string= [str(x) for x in song_list ] # apply the functin str for every element in the list --> The results is a list of strings
+test_2 = [x for x in song_list_string if "<b>Chords</b>" in x] # through out list elements, that do not contain <b>Chords</b>
+test_3 = [re.split("href=\"", x)[-1] for x in test_2]
+test_4 = [re.split("\">", x)[0] for x in test_3]
+
+# The result of this --> test_4 is a list - partially of lists - that contain the links. The next step is to merge possible lists within the list to get one big list with all the links.
+some_list = []
+for x in string.ascii_lowercase:
+    d["artist_page_" + x ]
+    list_length_1 = len(d["artist_page_" + x])
+    for y in range(0, list_length_1):
+        if type(d["artist_page_" + x][y]) == str:
+            some_list.append(d["artist_page_" + x][y])
+        else:
+            list_length_2 = len(d["artist_page_" + x][y])
+            for z in range(0, list_length_2):
+                if type(d["artist_page_" + x][y][z]) == str:
+                    some_list.append(d["artist_page_" + x][y][z])
+
+
 ''' 
-stopped here 30.08.2017 --> 
+next steps:
 
-FIRST SOLVE LINE 76 --> append new values, how to integrate that in loop?
+clean up the loops:
+    dynamic range
+Write a function to extract the chords from a given website
+Crawtl the data by using the function in a loop over all websites
+'''
 
-loop over all of the artist_list_ to get all the songs if there are chords
-'''    
+
+  
 
 
 
